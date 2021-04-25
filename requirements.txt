@@ -1,0 +1,22 @@
+certifi==2020.12.5
+chardet==3.0.4
+construct==2.8.8
+ExifRead==2.1.2
+gpxpy==0.9.8
+idna==2.7
+loguru @ file:///home/conda/feedstock_root/build_artifacts/loguru_1618589834533/work
+mapillary-tools @ git+https://github.com/mapillary/mapillary_tools@d0544d0475fbe9fb44edbadf7479debd0a409ac3
+numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1616933154495/work
+olefile @ file:///home/conda/feedstock_root/build_artifacts/olefile_1602866521163/work
+piexif===1.0.13m
+Pillow @ file:///home/conda/feedstock_root/build_artifacts/pillow_1617818070330/work
+pymp4==1.1.0
+pynmea2==1.12.0
+python-dateutil==2.7.3
+pytz==2021.1
+requests==2.20.0
+Shapely==1.7.1
+six==1.15.0
+tqdm==2.2.4
+tzwhere==3.0.3
+urllib3==1.24.3
