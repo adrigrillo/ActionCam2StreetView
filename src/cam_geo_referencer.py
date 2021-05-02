@@ -9,6 +9,7 @@ import numpy as np
 from loguru import logger
 from mapillary_tools.exif_write import ExifEdit
 from mapillary_tools.gps_parser import get_lat_lon_time_from_gpx
+from tqdm import tqdm
 
 NEW_FRAME_EXTRACTED_STR = 'New frame extracted: {}.'
 
@@ -64,10 +65,12 @@ class ActionCamGeoReferencer:
             gpx_timestamp = self.gpx_data[index][0]
 
             # Always the later time minus the earlier one
+            check_next = False
             if timestamp <= gpx_timestamp:
                 diff = gpx_timestamp - timestamp
             else:
                 diff = timestamp - gpx_timestamp
+                check_next = True
 
             logger.trace('Difference between timestamps: {}.{} seconds.', diff.seconds, diff.microseconds)
 
@@ -76,7 +79,7 @@ class ActionCamGeoReferencer:
                 time_diff = diff
                 diff_reduced = True
                 best_index = index
-            else:
+            elif not check_next:
                 logger.trace('Time difference not reduced. Exiting from while.')
                 diff_reduced = False
 
@@ -90,10 +93,31 @@ class ActionCamGeoReferencer:
             logger.debug('Suitable GPX point found.')
             return self.gpx_data.pop(best_index)
         else:
-            logger.warning('No suitable GPX point found.')
+            logger.debug('No suitable GPX point found.')
             return None
 
     def geo_reference(self, sync_error: float = 0, discard_start_frames: int = 0, discard_gpx_points: int = 0) -> None:
+        """ Read the video from the action cam frame by frame adding the GPS information.
+
+        The GPS data is retrieved by matching the point from the GPX file with the lowest
+        time difference with respect the frame timestamp.
+
+        The frame timestamp is inferred using the initial timestamp of the video and the
+        frame number multiplied by the specified time between frames in the constructor.
+
+        Additionally, the timestamp can be synced with the GPX timestamp indicating the
+        seconds that the video should be moved backwards in time, negative number as
+        `sync_error`, or it should be moved forward, positive number as `sync_error`.
+
+        Furthermore, a given number of video frames or GPX points can be discarded by
+        indicating the desired value in `discard_start_frames` and `discard_gpx_points`
+        respectively.
+
+        :param sync_error: modifies video timestamp in seconds by the number specified.
+         It could be a negative number.
+        :param discard_start_frames: number of frames to discard from the video.
+        :param discard_gpx_points: number of GPX points to discard from the file.
+        """
         # Get the start time from the video file name
         video_creation_time = datetime.datetime.strptime(self.video_path.stem, VIDEO_TIME_FORMAT)
         if sync_error != 0:
@@ -110,6 +134,7 @@ class ActionCamGeoReferencer:
             frame_num = discard_start_frames - 1
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
+        pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT) + 1), unit='frames')
         success, image = cap.read()
         while success:
             # 1. Calculate frame timestamp
@@ -138,6 +163,9 @@ class ActionCamGeoReferencer:
             success, image = cap.read()
             logger.debug(NEW_FRAME_EXTRACTED_STR, success)
             frame_num += 1
+            pbar.update(1)
+
+        pbar.close()
 
     def extract_n_frames(self, num_frames: int, discard_start_frames: int = 0) -> None:
         video_creation_time = datetime.datetime.strptime(self.video_path.stem, VIDEO_TIME_FORMAT)
