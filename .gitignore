@@ -1,6 +1,4 @@
-
-# Created by https://www.toptal.com/developers/gitignore/api/python,pycharm
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm
+credentials.json
 
 ### PyCharm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

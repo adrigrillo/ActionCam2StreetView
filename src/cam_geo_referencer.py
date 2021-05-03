@@ -87,11 +87,10 @@ class ActionCamGeoReferencer:
 
         if best_index is not None:
             # Remove elements before the taken point
-            for i in range(best_index):
-                self.gpx_data.pop(i)
+            self.gpx_data = self.gpx_data[best_index:]
 
             logger.debug('Suitable GPX point found.')
-            return self.gpx_data.pop(best_index)
+            return self.gpx_data.pop(0)
         else:
             logger.debug('No suitable GPX point found.')
             return None
@@ -134,7 +133,9 @@ class ActionCamGeoReferencer:
             frame_num = discard_start_frames - 1
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
 
-        pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT) + 1), unit='frames')
+        number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        logger.info('The video has {} frames from which {} are skipped.', number_of_frames, discard_start_frames)
+        pbar = tqdm(total=number_of_frames - discard_start_frames, unit='frames')
         success, image = cap.read()
         while success:
             # 1. Calculate frame timestamp
@@ -169,6 +170,8 @@ class ActionCamGeoReferencer:
 
     def extract_n_frames(self, num_frames: int, discard_start_frames: int = 0) -> None:
         video_creation_time = datetime.datetime.strptime(self.video_path.stem, VIDEO_TIME_FORMAT)
+        pbar = tqdm(total=num_frames, unit='frames')
+
         # Go through the video
         frame_num = 0
         cap = cv2.VideoCapture(str(self.video_path))
@@ -176,6 +179,7 @@ class ActionCamGeoReferencer:
             frame_num = discard_start_frames - 1
             num_frames += discard_start_frames - 1
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
+
         success, image = cap.read()
         while success and frame_num < num_frames:
             frame_timestamp = video_creation_time + datetime.timedelta(seconds=self.time_lapse * frame_num)
@@ -187,3 +191,6 @@ class ActionCamGeoReferencer:
             success, image = cap.read()
             logger.debug(NEW_FRAME_EXTRACTED_STR, success)
             frame_num += 1
+            pbar.update(1)
+
+        pbar.close()
