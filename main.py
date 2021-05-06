@@ -7,12 +7,16 @@ from src.cam_geo_referencer import ActionCamGeoReferencer
 
 if __name__ == '__main__':
     logger.remove()
-    logger.add(sys.stderr, level="DEBUG")
-    converter = ActionCamGeoReferencer('/home/adrigrillo/Videos/Coche/2021_0503_123013_011.MP4',
-                                       '/home/adrigrillo/Videos/Coche/2021-05-03_11-48_Mon.gpx')
-    converter.geo_reference(
-        sync_error=-16,
-        discard_start_frames=0,
-        discard_gpx_points=0
-    )
-    # converter.extract_n_frames(100, 0)
+    logger.add(sys.stderr, level="INFO")
+    converter = ActionCamGeoReferencer('/home/adrigrillo/Videos/Coche/video/2021_0506_193319_013.MP4',
+                                       '/home/adrigrillo/Videos/Coche/gps/2021-05-06_19-32_Thu.gpx')
+    extract = False
+    # extract = True
+    if not extract:
+        converter.geo_reference(
+            sync_error=-25,
+            discard_start_frames=5,
+            discard_gpx_points=0
+        )
+    else:
+        converter.extract_n_frames(50, 50)

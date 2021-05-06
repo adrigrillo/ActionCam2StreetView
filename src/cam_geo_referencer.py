@@ -31,9 +31,9 @@ class ActionCamGeoReferencer:
         self.time_lapse = time_lapse
 
         if not output_path:
-            self.output_path = Path(self.video_path.parent, f'output_{self.video_path.stem}')
+            self.output_path = Path(self.video_path.parent.parent, 'output', self.video_path.stem)
         else:
-            self.output_path = Path(output_path, f'output-{self.video_path.stem}')
+            self.output_path = Path(output_path, self.video_path.stem)
 
         logger.info('The results of the processing will be located in: {}', self.output_path)
         if not self.output_path.exists():
